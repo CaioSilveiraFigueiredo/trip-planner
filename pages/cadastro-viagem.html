@@ -7,15 +7,77 @@
 </head>
 <body>
     <header>
-
+        <h1>Trip Planner</h1>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Minhas Viagens</a></li>
+                <li><a href="cadastro-viagem.html">Nova Viagem</a></li>
+            </ul>
+        </nav>
     </header>
     
     <main>
+        <section>
+            <h2>Cadastrar Nova Viagem</h2>
+            <p>Preencha os campos abaixo para registrar o planejamento da sua viagem.</p>
 
+            <form action="#" method="POST">
+                <fieldset>
+                    <legend>Informações Principais da Viagem</legend>
+
+                    <div>
+                        <label for="destino">Destino (Cidade / Região):</label>
+                        <input type="text" id="destino" name="destino" placeholder="Ex: Roma" required>
+                    </div>
+
+                    <div>
+                        <label for="pais">País:</label>
+                        <input type="text" id="pais" name="pais" placeholder="Ex: Itália" required>
+                    </div>
+
+                    <div>
+                        <label for="data-ida">Data de Ida:</label>
+                        <input type="date" id="data-ida" name="data-ida" required>
+                    </div>
+
+                    <div>
+                        <label for="data-volta">Data de Volta:</label>
+                        <input type="date" id="data-volta" name="data-volta" required>
+                    </div>
+
+                    <div>
+                        <label for="orcamento">Orçamento Estimado (R$):</label>
+                        <input type="number" id="orcamento" name="orcamento" min="0" step="0.01" placeholder="Ex: 8500.00" required>
+                    </div>
+
+                    <div>
+                        <label for="status">Status da Viagem:</label>
+                        <select id="status" name="status" required>
+                            <option value="">Selecione um status...</option>
+                            <option value="planejada">Planejada</option>
+                            <option value="em-andamento">Em Andamento</option>
+                            <option value="concluida">Concluída</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="observacoes">Observações e Notas de Viagem:</label>
+                        <textarea id="observacoes" name="observacoes" rows="5" cols="40" placeholder="Anote lugares para visitar, reservas, hospedagem..."></textarea>
+                    </div>
+                </fieldset>
+
+                <div>
+                    <button type="submit">Salvar Viagem</button>
+                    <button type="reset">Limpar Campos</button>
+                    <a href="../index.html">Cancelar</a>
+                </div>
+            </form>
+        </section>
     </main>
 
     <footer>
-        
+        <p>&copy; Todos os direitos reservados - 2026 Trip Planner</p>
     </footer>
 </body>
 </html>
