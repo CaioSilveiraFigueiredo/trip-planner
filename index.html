@@ -18,7 +18,35 @@
     </header>
 
     <main>
-
+        <section class="busca">
+            <h2>Explorar viagens</h2>
+            <form action="#" method="GET">
+                <div>
+                    <label for="pesquisa">Pesquisar destino ou país:</label>
+                    <input type="search" id="pesquisa" name="pesquisa" placeholder="Ex: Paris, França, ...">
+                </div>
+                <div>
+                    <label for="filtro-status">Filtrar por Status:</label>
+                    <select id="filtro-status" name="status">
+                        <option value="">Todos</option>
+                        <option value="planejada">Planejada</option>
+                        <option value="em-andamento">Em Andamento</option>
+                        <option value="concluida">Concluída</option>
+                        <option value="cancelada">Cancelada</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="ordenacao">Ordenar por:</label>
+                    <select id="ordenacao" name="ordenacao">
+                        <option value="data-asc">Data de Ida (Mais Próxima)</option>
+                        <option value="data-desc">Data de Ida (Mais Distante)</option>
+                        <option value="orcamento-desc">Maior Orçamento</option>
+                        <option value="orcamento-asc">Menor Orçamento</option>
+                    </select>
+                </div>
+                <button type="button">Aplicar Filtros</button>
+            </form>
+        </section>
     </main>
 
     <footer>
