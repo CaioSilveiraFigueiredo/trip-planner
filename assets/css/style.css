@@ -87,3 +87,17 @@ h3 {
   color: #2c3e50;
   margin-bottom: 12px;
 }
+
+.busca form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.busca form > div {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
