@@ -269,3 +269,52 @@ form > div:last-child a:hover {
 form > fieldset > div > input {
     width: 97%;
 }
+
+article {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+article section {
+  box-shadow: none;
+  border: none;
+  padding: 0;
+}
+
+article ul {
+  list-style: none;
+  margin-top: 8px;
+}
+
+article ul li {
+  padding: 6px 0;
+  border-bottom: 1px dashed #dedfe0;
+}
+
+article figure {
+  margin: 16px 0;
+}
+
+article figure img {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+article section:last-child {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+article section:last-child a {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+article section:last-child a:hover {
+    text-decoration: underline;
+}
