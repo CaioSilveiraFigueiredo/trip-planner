@@ -292,10 +292,6 @@ article ul li {
   border-bottom: 1px dashed #dedfe0;
 }
 
-article figure {
-  margin: 16px 0;
-}
-
 article figure img {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -317,4 +313,21 @@ article section:last-child a {
 
 article section:last-child a:hover {
     text-decoration: underline;
+}
+
+aside {
+  background-color: #f0f7ff;
+  border-color: #bee3f8;
+}
+
+aside h3, aside ul li strong {
+  color: #2b5b84;
+}
+
+aside ul {
+  list-style: none;
+}
+
+aside ul li {
+  margin-bottom: 8px;
 }
