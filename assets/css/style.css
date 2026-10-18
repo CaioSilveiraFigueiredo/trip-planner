@@ -367,9 +367,6 @@ footer {
     text-align: center;
 }
 
-/* ==========================================================================
-   BREAKPOINT PARA TELAS MAIORES (A partir de 768px - DESKTOP / TABLET)
-   ========================================================================== */
 @media (min-width: 768px) {
     header {
         flex-direction: row;
