@@ -56,3 +56,24 @@ function inicializarDadosLocalStorage() {
         salvarViagens(viagensIniciais);
     }
 }
+
+async function buscarDadosPaisAPI(nomePais) {
+    if (!nomePais) return null;
+    try {
+        const resposta = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(nomePais)}?lang=por`);
+        if (!resposta.ok) throw new Error('País não encontrado na API');
+        const [paisData] = await resposta.json();
+        
+        return {
+            nomeOficial: paisData.name.nativeName ? Object.values(paisData.name.nativeName)[0].official : paisData.name.official,
+            capital: paisData.capital ? paisData.capital[0] : 'Não informada',
+            moeda: paisData.currencies ? Object.values(paisData.currencies).map(c => `${c.name} (${c.symbol || ''})`).join(', ') : 'Não informada',
+            populacao: paisData.population ? paisData.population.toLocaleString('pt-BR') : 'Não informada',
+            continente: paisData.continents ? paisData.continents[0] : 'Não informado',
+            bandeira: paisData.flags ? paisData.flags.svg || paisData.flags.png : ''
+        };
+    } catch (error) {
+        console.warn('Erro ao consumir API de países:', error);
+        return null;
+    }
+}
