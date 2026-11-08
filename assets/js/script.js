@@ -56,23 +56,75 @@ function inicializarDadosLocalStorage() {
     }
 }
 
+let promessaListaPaises = null;
+
+function normalizarNomePais(nome) {
+    return String(nome || '').trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ');
+}
+
 async function buscarDadosPaisAPI(nomePais) {
-    if (!nomePais) return null;
+    const nomeBuscado = normalizarNomePais(nomePais);
+    if (!nomeBuscado) return null;
+
     try {
-        const resposta = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(nomePais)}?lang=por`);
-        if (!resposta.ok) throw new Error('País não encontrado na API');
-        const [paisData] = await resposta.json();
-        
+        if (!promessaListaPaises) {
+            const campos = 'name,alpha2Code,capital,currencies,population,region,flags,nativeName';
+            promessaListaPaises = fetch(`https://countries.dev/countries?fields=${campos}`)
+                .then(async resposta => {
+                    if (!resposta.ok) throw new Error(`API de países retornou HTTP ${resposta.status}`);
+                    const lista = await resposta.json();
+                    if (!Array.isArray(lista)) throw new Error('Formato inesperado da API de países');
+                    return lista;
+                })
+                .catch(erro => {
+                    promessaListaPaises = null;
+                    throw erro;
+                });
+        }
+
+        const listaPaises = await promessaListaPaises;
+        const nomesEmPortugues = new Intl.DisplayNames(['pt-BR'], { type: 'region' });
+        const codigosAlternativos = {
+            'eua': 'US', 'usa': 'US', 'estados unidos da america': 'US',
+            'inglaterra': 'GB', 'gra bretanha': 'GB',
+            'holanda': 'NL', 'paises baixos': 'NL'
+        };
+        const codigoAlternativo = codigosAlternativos[nomeBuscado];
+
+        const paisData = listaPaises.find(pais => {
+            const nomePortugues = pais.alpha2Code ? nomesEmPortugues.of(pais.alpha2Code) : '';
+            return (codigoAlternativo && pais.alpha2Code === codigoAlternativo) ||
+                [pais.name, pais.nativeName, nomePortugues, pais.alpha2Code, pais.alpha3Code]
+                    .some(nome => normalizarNomePais(nome) === nomeBuscado);
+        });
+
+        if (!paisData) {
+            console.info(`País não encontrado: ${nomePais}`);
+            return null;
+        }
+
+        const nomePortugues = nomesEmPortugues.of(paisData.alpha2Code);
+        const regioes = {
+            'Americas': 'Américas', 'Europe': 'Europa', 'Asia': 'Ásia',
+            'Africa': 'África', 'Oceania': 'Oceania', 'Polar': 'Região polar'
+        };
+
         return {
-            nomeOficial: paisData.name.nativeName ? Object.values(paisData.name.nativeName)[0].official : paisData.name.official,
-            capital: paisData.capital ? paisData.capital[0] : 'Não informada',
-            moeda: paisData.currencies ? Object.values(paisData.currencies).map(c => `${c.name} (${c.symbol || ''})`).join(', ') : 'Não informada',
-            populacao: paisData.population ? paisData.population.toLocaleString('pt-BR') : 'Não informada',
-            continente: paisData.continents ? paisData.continents[0] : 'Não informado',
-            bandeira: paisData.flags ? paisData.flags.svg || paisData.flags.png : ''
+            nome: nomePortugues || paisData.name || 'Não informado',
+            capital: paisData.capital || 'Não informada',
+            moeda: Array.isArray(paisData.currencies) && paisData.currencies.length
+                ? paisData.currencies.map(m => `${m.name} (${m.code || m.symbol || ''})`).join(', ')
+                : 'Não informada',
+            populacao: typeof paisData.population === 'number'
+                ? paisData.population.toLocaleString('pt-BR') : 'Não informada',
+            regiao: regioes[paisData.region] || paisData.region || 'Não informada',
+            bandeira: paisData.flags?.svg || paisData.flags?.png ||
+                (paisData.alpha2Code ? `https://flagcdn.com/w320/${paisData.alpha2Code.toLowerCase()}.png` : '')
         };
     } catch (error) {
-        console.warn('Erro ao consumir API de países:', error);
+        console.warn('Não foi possível consultar os dados do país:', error);
         return null;
     }
 }
@@ -248,9 +300,11 @@ function configurarPaginaCadastro() {
         }
 
         const dadosPaisApi = await buscarDadosPaisAPI(pais);
-        const bandeira = dadosPaisApi ? dadosPaisApi.bandeira : 'https://flagcdn.com/w320/un.png';
-
         let viagens = carregarViagens();
+        const viagemOriginal = idEdicao ? viagens.find(v => v.id === idEdicao) : null;
+        const bandeira = dadosPaisApi?.bandeira ||
+            (viagemOriginal?.pais === pais ? viagemOriginal.bandeira : null) ||
+            'https://flagcdn.com/w320/un.png';
 
         if (idEdicao) {
             viagens = viagens.map(v => {
@@ -293,7 +347,13 @@ function configurarPaginaCadastro() {
 
 async function configurarPaginaDetalhes() {
     const urlParams = new URLSearchParams(window.location.search);
-    const idViagem = urlParams.get('id') || '1'; 
+    const idViagem = urlParams.get('id'); 
+
+    if (!idViagem) {
+        alert('Nenhuma viagem selecionada!');
+        window.location.href = '../index.html';
+        return;
+    }
 
     const viagens = carregarViagens();
     const viagem = viagens.find(v => v.id === idViagem);
@@ -332,20 +392,30 @@ async function configurarPaginaDetalhes() {
 
     const dadosApi = await buscarDadosPaisAPI(viagem.pais);
     const imgBandeira = document.querySelector('article figure img');
-    if (imgBandeira && dadosApi) {
-        imgBandeira.src = dadosApi.bandeira;
-        imgBandeira.alt = `Bandeira de ${viagem.pais}`;
+    if (imgBandeira) {
+        const urlBandeira = dadosApi?.bandeira || viagem.bandeira;
+        if (urlBandeira) {
+            imgBandeira.src = urlBandeira;
+            imgBandeira.alt = `Bandeira de ${viagem.pais}`;
+        } else {
+            imgBandeira.hidden = true;
+        }
     }
 
     const ulApi = document.querySelector('article section:nth-of-type(3) ul');
-    if (ulApi && dadosApi) {
-        ulApi.innerHTML = `
-            <li><strong>Nome Oficial:</strong> ${dadosApi.nomeOficial}</li>
-            <li><strong>Capital:</strong> ${dadosApi.capital}</li>
-            <li><strong>Moeda:</strong> ${dadosApi.moeda}</li>
-            <li><strong>População:</strong> ~${dadosApi.populacao} habitantes</li>
-            <li><strong>Continente:</strong> ${dadosApi.continente}</li>
-        `;
+    if (ulApi) {
+        if (dadosApi) {
+            ulApi.innerHTML = `
+                <li><strong>Nome do país:</strong> ${dadosApi.nome}</li>
+                <li><strong>Capital:</strong> ${dadosApi.capital}</li>
+                <li><strong>Moeda:</strong> ${dadosApi.moeda}</li>
+                <li><strong>População:</strong> ${dadosApi.populacao} habitantes</li>
+                <li><strong>Região:</strong> ${dadosApi.regiao}</li>
+            `;
+        } else {
+            // Não mostrar dados fixos de Paris se a consulta de outro país falhar.
+            ulApi.innerHTML = '<li>Não foi possível carregar os dados deste país no momento.</li>';
+        }
     }
 
     const btnEditar = document.querySelector('article section:last-child a');
