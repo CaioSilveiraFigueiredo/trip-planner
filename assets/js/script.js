@@ -203,6 +203,94 @@ function atualizarResumoRapido() {
     `;
 }
 
+function configurarPaginaCadastro() {
+    const form = document.querySelector('main.main-cadastro form');
+    if (!form) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const idEdicao = urlParams.get('id');
+
+    const tituloPagina = document.querySelector('main.main-cadastro h2');
+    const botaoSalvar = form.querySelector('button[type="submit"]');
+
+    if (idEdicao) {
+        if (tituloPagina) tituloPagina.textContent = 'Editar Viagem';
+        if (botaoSalvar) botaoSalvar.textContent = 'Atualizar Viagem';
+
+        const viagens = carregarViagens();
+        const viagemParaEditar = viagens.find(v => v.id === idEdicao);
+
+        if (viagemParaEditar) {
+            document.getElementById('destino').value = viagemParaEditar.destino;
+            document.getElementById('pais').value = viagemParaEditar.pais;
+            document.getElementById('data-ida').value = viagemParaEditar.dataIda;
+            document.getElementById('data-volta').value = viagemParaEditar.dataVolta;
+            document.getElementById('orcamento').value = viagemParaEditar.orcamento;
+            document.getElementById('status').value = viagemParaEditar.status;
+            document.getElementById('observacoes').value = viagemParaEditar.observacoes || '';
+        }
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const destino = document.getElementById('destino').value.trim();
+        const pais = document.getElementById('pais').value.trim();
+        const dataIda = document.getElementById('data-ida').value;
+        const dataVolta = document.getElementById('data-volta').value;
+        const orcamento = parseFloat(document.getElementById('orcamento').value);
+        const status = document.getElementById('status').value;
+        const observacoes = document.getElementById('observacoes').value.trim();
+
+        if (new Date(dataIda) > new Date(dataVolta)) {
+            alert('A data de ida não pode ser posterior à data de volta!');
+            return;
+        }
+
+        const dadosPaisApi = await buscarDadosPaisAPI(pais);
+        const bandeira = dadosPaisApi ? dadosPaisApi.bandeira : 'https://flagcdn.com/w320/un.png';
+
+        let viagens = carregarViagens();
+
+        if (idEdicao) {
+            viagens = viagens.map(v => {
+                if (v.id === idEdicao) {
+                    return {
+                        ...v,
+                        destino,
+                        pais,
+                        bandeira,
+                        dataIda,
+                        dataVolta,
+                        orcamento,
+                        status,
+                        observacoes
+                    };
+                }
+                return v;
+            });
+            alert('Viagem atualizada com sucesso!');
+        } else {
+            const novaViagem = {
+                id: Date.now().toString(),
+                destino,
+                pais,
+                bandeira,
+                dataIda,
+                dataVolta,
+                orcamento,
+                status,
+                observacoes
+            };
+            viagens.push(novaViagem);
+            alert('Viagem cadastrada com sucesso!');
+        }
+
+        salvarViagens(viagens);
+        window.location.href = '../index.html';
+    });
+}
+
 function formatarDataBR(dataStr) {
     if (!dataStr) return '';
     const partes = dataStr.split('-');
