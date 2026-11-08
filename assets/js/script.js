@@ -17,7 +17,6 @@ function salvarViagens(viagens) {
 
 function inicializarDadosLocalStorage() {
     if (!localStorage.getItem(CHAVE_STORAGE)) {
-        // Dados iniciais fornecidos no seu modelo HTML original
         const viagensIniciais = [
             {
                 id: '1',
@@ -82,7 +81,6 @@ function configurarPaginaPrincipal() {
     renderizarTabelaViagens();
     atualizarResumoRapido();
 
-    // Eventos de Filtro, Pesquisa e Ordenação em tempo real ou via botão
     const btnFiltrar = document.querySelector('.busca button');
     const inputPesquisa = document.getElementById('pesquisa');
     const selectStatus = document.getElementById('filtro-status');
@@ -105,7 +103,7 @@ function aplicarFiltrosEEsponsividade() {
     const statusFiltro = document.getElementById('filtro-status').value;
     const ordenacao = document.getElementById('ordenacao').value;
 
-    let viagens = obterViagens();
+    let viagens = carregarViagens();
 
     if (termoPesquisa) {
         viagens = viagens.filter(v => 
@@ -180,7 +178,7 @@ function renderizarTabelaViagens(viagensParaExibir = null) {
 
 function excluirViagem(id) {
     if (confirm('Tem certeza que deseja excluir esta viagem?')) {
-        let viagens = obterViagens();
+        let viagens = carregarViagens();
         viagens = viagens.filter(v => v.id !== id);
         salvarViagens(viagens);
         renderizarTabelaViagens();
@@ -192,7 +190,7 @@ function atualizarResumoRapido() {
     const asideUl = document.querySelector('aside ul');
     if (!asideUl) return;
 
-    const viagens = obterViagens();
+    const viagens = carregarViagens();
     const total = viagens.length;
 
     const hoje = new Date().toISOString().split('T')[0];
@@ -204,3 +202,32 @@ function atualizarResumoRapido() {
         <li>Próximo destino: <strong>${proxima}</strong></li>
     `;
 }
+
+function formatarDataBR(dataStr) {
+    if (!dataStr) return '';
+    const partes = dataStr.split('-');
+    if (partes.length !== 3) return dataStr;
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function formatarStatus(statusKey) {
+    const mapa = {
+        'planejada': 'Planejada',
+        'em-andamento': 'Em Andamento',
+        'concluida': 'Concluída',
+        'cancelada': 'Cancelada'
+    };
+    return mapa[statusKey] || statusKey;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarDadosLocalStorage();
+    const path = window.location.pathname;
+    if (path.includes('cadastro-viagem.html')) {
+        configurarPaginaCadastro();
+    } else if (path.includes('detalhes-viagem.html')) {
+        configurarPaginaDetalhes();
+    } else {
+        configurarPaginaPrincipal();
+    }
+});
