@@ -291,6 +291,79 @@ function configurarPaginaCadastro() {
     });
 }
 
+async function configurarPaginaDetalhes() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const idViagem = urlParams.get('id') || '1'; 
+
+    const viagens = carregarViagens();
+    const viagem = viagens.find(v => v.id === idViagem);
+
+    if (!viagem) {
+        alert('Viagem não encontrada!');
+        window.location.href = '../index.html';
+        return;
+    }
+
+    const d1 = new Date(viagem.dataIda);
+    const d2 = new Date(viagem.dataVolta);
+    const diffTempo = Math.abs(d2 - d1);
+    const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+    const h2Detalhes = document.querySelector('article section h2');
+    if (h2Detalhes) h2Detalhes.textContent = `Detalhes da Viagem: ${viagem.destino}`;
+    
+    const pStatus = document.querySelector('article section p');
+    if (pStatus) pStatus.innerHTML = `Status atual: <strong>${formatarStatus(viagem.status)}</strong>`;
+
+    const ulInfo = document.querySelector('article section:nth-of-type(2) ul');
+    if (ulInfo) {
+        ulInfo.innerHTML = `
+            <li><strong>Destino:</strong> ${viagem.destino}</li>
+            <li><strong>País:</strong> ${viagem.pais}</li>
+            <li><strong>Data de Ida:</strong> ${formatarDataBR(viagem.dataIda)}</li>
+            <li><strong>Data de Volta:</strong> ${formatarDataBR(viagem.dataVolta)}</li>
+            <li><strong>Duração:</strong> ${diffDias} dias</li>
+            <li><strong>Orçamento Planejado:</strong> ${Number(viagem.orcamento).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</li>
+        `;
+    }
+
+    const pObs = document.querySelector('article section:nth-of-type(2) h4 + p');
+    if (pObs) pObs.textContent = viagem.observacoes || 'Nenhuma observação registrada.';
+
+    const dadosApi = await buscarDadosPaisAPI(viagem.pais);
+    const imgBandeira = document.querySelector('article figure img');
+    if (imgBandeira && dadosApi) {
+        imgBandeira.src = dadosApi.bandeira;
+        imgBandeira.alt = `Bandeira de ${viagem.pais}`;
+    }
+
+    const ulApi = document.querySelector('article section:nth-of-type(3) ul');
+    if (ulApi && dadosApi) {
+        ulApi.innerHTML = `
+            <li><strong>Nome Oficial:</strong> ${dadosApi.nomeOficial}</li>
+            <li><strong>Capital:</strong> ${dadosApi.capital}</li>
+            <li><strong>Moeda:</strong> ${dadosApi.moeda}</li>
+            <li><strong>População:</strong> ~${dadosApi.populacao} habitantes</li>
+            <li><strong>Continente:</strong> ${dadosApi.continente}</li>
+        `;
+    }
+
+    const btnEditar = document.querySelector('article section:last-child a');
+    if (btnEditar) btnEditar.href = `cadastro-viagem.html?id=${viagem.id}`;
+
+    const btnExcluir = document.querySelector('article section:last-child .botao-excluir');
+    if (btnExcluir) {
+        btnExcluir.addEventListener('click', () => {
+            if (confirm('Deseja realmente excluir esta viagem?')) {
+                let lista = carregarViagens();
+                lista = lista.filter(v => v.id !== idViagem);
+                salvarViagens(lista);
+                window.location.href = '../index.html';
+            }
+        });
+    }
+}
+
 function formatarDataBR(dataStr) {
     if (!dataStr) return '';
     const partes = dataStr.split('-');
